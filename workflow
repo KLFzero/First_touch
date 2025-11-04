@@ -1,0 +1,24 @@
+name: Generate PDF from schedule
+on:
+  push:
+    paths:
+      - 'docs/Unity_GameJam_12周日程表.md'
+  workflow_dispatch: {}
+
+jobs:
+  build_pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pandoc and texlive
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc texlive-xetex
+      - name: Generate PDF
+        run: |
+          pandoc docs/Unity_GameJam_12周日程表.md -o docs/Unity_GameJam_12周日程表.pdf --pdf-engine=xelatex
+      - name: Commit PDF
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Add generated PDF of 12-week schedule"
+          file_pattern: docs/Unity_GameJam_12周日程表.pdf
