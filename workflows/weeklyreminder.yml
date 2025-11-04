@@ -1,0 +1,35 @@
+name: Weekly Reminder
+on:
+  schedule:
+    - cron: '0 23 * * Sun' # Sunday 23:00 UTC = Monday 08:00 JST (Asia/Tokyo)
+  workflow_dispatch: {}
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install gh CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gdebi-core curl
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt update
+          sudo apt install -y gh
+      - name: Post reminders to open weekly task issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          echo "Fetching open issues labeled 'type:task'..."
+          issues=$(gh issue list --repo "$REPO" --state open --label type:task --json number,title --jq '.[] | .number' || true)
+          if [ -z "$issues" ]; then
+            echo "No open issues with label type:task found. Falling back to issues starting with [W"
+            issues=$(gh issue list --repo "$REPO" --state open --json number,title --jq '.[] | select(.title|startswith("[W")) | .number' || true)
+          fi
+          for num in $issues; do
+            echo "Commenting on issue #$num"
+            gh issue comment "$num" --repo "$REPO" --body "这是每周提醒：请安排本周学习任务并在完成后更新 Issue（打卡 / commit / devlog）。祝学习顺利！（提醒时间：Asia/Tokyo）" || true
+          done
