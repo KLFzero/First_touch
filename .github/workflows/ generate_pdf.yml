@@ -2,7 +2,7 @@ name: Generate PDF from schedule
 on:
   push:
     paths:
-      - 'docs/Unity_GameJam_12周日程表.md'
+      - 'docs/ Unity_GameJam_12周日程表.md'
   workflow_dispatch: {}
 
 jobs:
@@ -16,9 +16,9 @@ jobs:
           sudo apt-get install -y pandoc texlive-xetex
       - name: Generate PDF
         run: |
-          pandoc docs/Unity_GameJam_12周日程表.md -o docs/Unity_GameJam_12周日程表.pdf --pdf-engine=xelatex
+          pandoc docs/ Unity_GameJam_12周日程表.md -o docs/ Unity_GameJam_12周日程表.md --pdf-engine=xelatex
       - name: Commit PDF
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "Add generated PDF of 12-week schedule"
-          file_pattern: docs/Unity_GameJam_12周日程表.pdf
+          file_pattern: docs/ Unity_GameJam_12周日程表.md
